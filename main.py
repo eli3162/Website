@@ -5,7 +5,6 @@ import os
 import json
 import subprocess
 from pathlib import Path
-import requests
 
 def download_file(url, local_filename):
 
