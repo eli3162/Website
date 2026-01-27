@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Schematic</title>
+	<style>
+		html,body{height:100%;margin:0;background:#0b0b0b;color:#fff;font-family:system-ui,Segoe UI,Roboto,Arial}
+		.wrap{display:flex;align-items:center;justify-content:center;height:100%;padding:16px}
+		model-viewer{width:100%;max-width:960px;height:80vh;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+		.sketchfab-embed-wrapper{position:relative;width:100%;max-width:960px}
+		.sketchfab-embed-wrapper iframe{width:100%;height:80vh;border-radius:8px;border:0;display:block}
+		.pip-btn{position:absolute;top:12px;right:12px;padding:8px 10px;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;font-size:13px;display:none;z-index:2000}
+		.share-btn{position:absolute;top:12px;right:110px;padding:8px 10px;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;font-size:13px;display:none;z-index:2000}
+		.fs-btn{position:absolute;top:12px;right:210px;padding:8px 10px;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:6px;cursor:pointer;font-size:13px;z-index:2000}
+		/* Show PiP button when the wrapper is in fullscreen */
+		.sketchfab-embed-wrapper:fullscreen .pip-btn,
+		.sketchfab-embed-wrapper:-webkit-full-screen .pip-btn{display:block}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="sketchfab-embed-wrapper">
+			<iframe title="Log cabin" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/975a43ebddae4b3da71b68bcd92d3670/embed"> </iframe>
+				<button class="fs-btn" aria-hidden="false" title="Enter fullscreen">⤢ Fullscreen</button>
+				<button class="pip-btn" aria-hidden="true" title="Picture-in-Picture">⧉ PiP</button>
+				<button class="share-btn" aria-hidden="true" title="Share tab for PiP" style="display:none">⤢ Share tab for PiP</button>
+			<p style="font-size: 13px; font-weight: normal; margin: 5px; color: #4A4A4A;"> <a href="https://sketchfab.com/3d-models/log-cabin-975a43ebddae4b3da71b68bcd92d3670?utm_medium=embed&utm_campaign=share-popup&utm_content=975a43ebddae4b3da71b68bcd92d3670" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"> Log cabin </a> by <a href="https://sketchfab.com/eli3162?utm_medium=embed&utm_campaign=share-popup&utm_content=975a43ebddae4b3da71b68bcd92d3670" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;"> eli3162 </a> on <a href="https://sketchfab.com?utm_medium=embed&utm_campaign=share-popup&utm_content=975a43ebddae4b3da71b68bcd92d3670" target="_blank" rel="nofollow" style="font-weight: bold; color: #1CAAD9;">Sketchfab</a></p>
+		</div>
+	</div>
+
+	<script>
+	(function(){
+		const wrapper = document.querySelector('.sketchfab-embed-wrapper');
+		if(!wrapper) return;
+		const iframe = wrapper.querySelector('iframe');
+		const pipBtn = wrapper.querySelector('.pip-btn');
+		if(!iframe || !pipBtn) return;
+
+		const pipApiAvailable = ('requestPictureInPicture' in HTMLVideoElement.prototype) && document.pictureInPictureEnabled;
+		const shareBtn = wrapper.querySelector('.share-btn');
+		const fsBtn = wrapper.querySelector('.fs-btn');
+		const isOpera = /OPR\/|Opera/.test(navigator.userAgent);
+
+		// Helper: create a hidden video from a MediaStream and request PiP
+		async function startPiPWithStream(stream){
+			const hiddenVideo = document.createElement('video');
+			hiddenVideo.style.position = 'fixed';
+			hiddenVideo.style.right = '-9999px';
+			hiddenVideo.style.width = '640px';
+			hiddenVideo.style.height = '360px';
+			hiddenVideo.muted = true;
+			hiddenVideo.autoplay = true;
+			hiddenVideo.playsInline = true;
+			hiddenVideo.srcObject = stream;
+			document.body.appendChild(hiddenVideo);
+			try{
+				await hiddenVideo.play();
+				if(typeof hiddenVideo.requestPictureInPicture !== 'function') throw new Error('Picture-in-Picture not available on this element.');
+				await hiddenVideo.requestPictureInPicture();
+				hiddenVideo.addEventListener('leavepictureinpicture', ()=>{
+					try{stream.getTracks().forEach(t=>t.stop());}catch(e){}
+					hiddenVideo.remove();
+				},{once:true});
+			}catch(e){
+				try{stream.getTracks().forEach(t=>t.stop());}catch(_){ }
+				hiddenVideo.remove();
+				throw e;
+			}
+		}
+
+		if(!pipApiAvailable){
+			pipBtn.title = 'Picture-in-Picture not supported in this browser';
+			pipBtn.disabled = true;
+		}
+
+		pipBtn.addEventListener('click', async function(){
+			try{
+				let stream = null;
+				// Preferred: iframe.captureStream()
+				if(typeof iframe.captureStream === 'function'){
+					stream = iframe.captureStream();
+				}
+				// Fallback: try to access a video/canvas inside the iframe (only works if same-origin)
+				if(!stream){
+					try{
+						const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+						const video = innerDoc && innerDoc.querySelector && innerDoc.querySelector('video');
+						const canvas = innerDoc && innerDoc.querySelector && innerDoc.querySelector('canvas');
+						if(video && typeof video.captureStream === 'function') stream = video.captureStream();
+						else if(canvas && typeof canvas.captureStream === 'function') stream = canvas.captureStream();
+					}catch(e){
+						// Cross-origin or other access error — we'll handle below
+					}
+				}
+
+				if(!stream) throw new Error('Unable to capture the embed (likely cross-origin or unsupported).');
+
+				// Use helper to start PiP from the captured stream
+				await startPiPWithStream(stream);
+
+			}catch(err){
+				console.error('PiP error', err);
+				// If capture failed, reveal share button as an explicit fallback
+				if(shareBtn){
+					shareBtn.style.display = 'inline-block';
+					shareBtn.title = 'If capture is blocked (cross-origin), share the tab to enable PiP';
+				}
+				const msg = (err && err.message) ? err.message : String(err);
+				const short = isOpera ? 'Opera may block capture from cross-origin iframes. Try Chrome/Edge or use Share Tab.' : msg;
+				// Offer automatic share-tab fallback for browsers like Opera GX
+				if(navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function'){
+					const ok = confirm(short + '\n\nWould you like to share your tab/window/screen to open PiP now?');
+					if(ok){
+						try{
+							const displayStream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+							await startPiPWithStream(displayStream);
+							return; // done
+						}catch(e){
+							console.error('Automatic share->PiP failed', e);
+							alert('Sharing failed or was cancelled: ' + (e && e.message ? e.message : e));
+						}
+					}
+				}
+				alert('Picture-in-Picture unavailable: ' + short);
+			}
+		});
+
+		// Share-tab fallback: user selects the tab/window/screen to share, then we PiP that stream
+		if(shareBtn){
+			shareBtn.addEventListener('click', async ()=>{
+				try{
+					const displayStream = await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+					await startPiPWithStream(displayStream);
+				}catch(e){
+					console.error('Share for PiP failed', e);
+					alert('Sharing failed or was cancelled: ' + (e && e.message ? e.message : e));
+				}
+			});
+		}
+
+		// Fullscreen button behavior: request fullscreen on the wrapper (so our controls remain visible)
+		if(fsBtn){
+			fsBtn.addEventListener('click', async ()=>{
+				try{
+					if(wrapper.requestFullscreen) await wrapper.requestFullscreen();
+					else if(wrapper.webkitRequestFullscreen) await wrapper.webkitRequestFullscreen();
+					else if(wrapper.msRequestFullscreen) await wrapper.msRequestFullscreen();
+					updateFullscreenButtons();
+				}catch(e){
+					console.error('Fullscreen request failed', e);
+					alert('Unable to enter fullscreen: ' + (e && e.message ? e.message : e));
+				}
+			});
+		}
+
+		// Show/hide PiP and Share buttons when fullscreen changes.
+		function updateFullscreenButtons(){
+			const fs = document.fullscreenElement || document.webkitFullscreenElement;
+			// If the fullscreen element is the iframe or a descendant of the wrapper, show the PiP button
+			if(fs && (fs === wrapper || wrapper.contains(fs) || fs === iframe)){
+				// we're in fullscreen showing the wrapper/iframe — show PiP and hide fullscreen button
+				pipBtn.style.display = 'inline-block';
+				pipBtn.setAttribute('aria-hidden','false');
+				if(fsBtn) fsBtn.style.display = 'none';
+			}else{
+				// not fullscreen: hide PiP button and show fullscreen button
+				pipBtn.style.display = '';
+				pipBtn.setAttribute('aria-hidden','true');
+				if(fsBtn) fsBtn.style.display = 'inline-block';
+			}
+
+			// shareBtn stays hidden until needed (on capture failure), but if fullscreen and it's already visible, keep it shown
+			if(shareBtn && shareBtn.style.display && shareBtn.style.display !== 'none'){
+				// keep visible
+			}else if(shareBtn){
+				shareBtn.style.display = 'none';
+			}
+		}
+
+		document.addEventListener('fullscreenchange', updateFullscreenButtons);
+		document.addEventListener('webkitfullscreenchange', updateFullscreenButtons);
+		// call once on load to set initial state
+		updateFullscreenButtons();
+	})();
+	</script>
+
+	</body>
+</html>

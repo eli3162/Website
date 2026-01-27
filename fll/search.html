@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        @font-face {
+            font-family: 'Mona Sans';
+            src:
+                url('/assets/download/font.woff2') format('woff2 supports variations'),
+                url('/assets/download/font.woff2') format('woff2-variations');
+            font-weight: 200 900;
+            font-stretch: 75% 125%;
+        }
+
+        @font-face {
+            font-family: 'Hubot Sans';
+            src:
+                url('/assets/download/font.woff2') format('woff2 supports variations'),
+                url('/assets/download/font.woff2') format('woff2-variations');
+            font-weight: 200 900;
+            font-stretch: 75% 125%;
+        }
+        html * {
+            line-height: 1;
+            font-family: 'Mona Sans', 'Hubot Sans';
+            color: #ffffff; /* Set text color to white */
+        }
+        body {
+            background-color: #121212; /* Set background color to dark */
+            background-repeat: no-repeat;
+        }
+        .action-bar {
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px; /* Add rounded corners */
+        }
+        .action-bar a {
+            color: #ffffff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .action-bar a:hover {
+            text-decoration: underline;
+        }
+        .logo {
+            height: 40px;
+            border-radius: 50%; /* Make the icon rounded */
+        }
+        .big-header {
+            font-family: 'Hubot Sans';
+            font-size: 72px; /* Very big font size */
+            text-align: center;
+            margin-top: 50px;
+        }
+        .sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 36px; /* Big font size for subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        .sub-sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 24px; /* Font size for sub-subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        .sub-sub-sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 14px; /* Font size for sub-sub-subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        ::selection {
+            background: gray;
+            color: white;
+        }
+        .body-image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .glb {
+            width: 1500px;
+            height: 1000px;
+        }
+        model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+        .metadata {
+            font-size: 30px;
+            float: right;
+            text-align: right;
+            margin-top: -975px;
+            font-family: 'Consolas'
+        }
+        .searchtext {
+            float: right;
+            width: 50%;   
+        }
+        .point_cloud {
+            width: 250px;
+            float: left;
+            height: 250px;
+            margin-top: -975px;
+        }
+    </style>
+    <header>
+        <div class="action-bar">
+            <div>
+                <img src="/download/assets/favicon.ico" alt="Logo" class="logo">
+            </div>
+        </div>
+    </header>
+    <body>
+        <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+        <div class="glb">
+            <model-viewer alt="Artifact" src="/artifacts/data/rock.glb" ar environment-image="" poster="" shadow-intensity="5" camera-controls touch-action="pan-y"></model-viewer>
+        </div>
+        <div class="point_cloud">
+            <model-viewer alt="Point Cloud" src="/artifacts/data/point_rock.glb" ar environment-image="" poster="" shadow-intensity="0" camera-controls touch-action="pan-y"></model-viewer>
+        </div>
+        <div class="searchtext">
+            <p class="metadata">
+                Name: Spear Fragment<br>
+                Found at: AZTEC SITE<br>
+                Created by: Penn Museum.<br>
+                Date: 2024-01-15<br>
+                Code: 16SL1633<br>
+                Catagories: Brown, Rock, Sharp Edge, Dirty, Bumpy<br>
+                Description: A fragment of a spear tip made from stone, likely used for hunting or combat by ancient civilizations. The piece shows signs of wear and chipping, indicating it was used extensively before being discarded or lost.
+            </p>
+        </div>
+    </body>
+</html>

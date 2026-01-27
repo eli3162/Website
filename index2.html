@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ethan's Website</title>
+  </head>
+  <body>
+  </body>
+</html>
+<!DOCTYPE html>
+<html>
+    <style>
+        @font-face {
+            font-family: 'Mona Sans';
+            src:
+                url('/assets/download/font.woff2') format('woff2 supports variations'),
+                url('/assets/download/font.woff2') format('woff2-variations');
+            font-weight: 200 900;
+            font-stretch: 75% 125%;
+        }
+
+        @font-face {
+            font-family: 'Hubot Sans';
+            src:
+                url('/assets/download/font.woff2') format('woff2 supports variations'),
+                url('/assets/download/font.woff2') format('woff2-variations');
+            font-weight: 200 900;
+            font-stretch: 75% 125%;
+        }
+        html * {
+            line-height: 1;
+            font-family: 'Mona Sans', 'Hubot Sans';
+            color: #ffffff; /* Set text color to white */
+        }
+        body {
+            background-color: #121212; /* Set background color to dark */
+            background-image: url('https://github.com/?raw=true');
+            background-repeat: no-repeat;
+        }
+        .action-bar {
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px; /* Add rounded corners */
+        }
+        .action-bar a {
+            color: #ffffff;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .action-bar a:hover {
+            text-decoration: underline;
+        }
+        .logo {
+            height: 40px;
+            border-radius: 50%; /* Make the icon rounded */
+        }
+        .big-header {
+            font-family: 'Hubot Sans';
+            font-size: 72px; /* Very big font size */
+            text-align: center;
+            margin-top: 50px;
+        }
+        .sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 36px; /* Big font size for subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        .sub-sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 24px; /* Font size for sub-subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        .sub-sub-sub-header {
+            font-family: 'Hubot Sans';
+            font-size: 14px; /* Font size for sub-sub-subheading */
+            text-align: center;
+            margin-top: 20px;
+        }
+        ::selection {
+            background: gray; /* Set selection background color to gray */
+            color: white; /* Set selection text color to white */
+        }
+        .body-image {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <header>
+        <div class="action-bar">
+            <div>
+                <img src="/assets/favicon.ico" alt="Logo" class="logo">
+            </div>
+        </div>
+    </header>
+    <body>
+        <h3 class="sub-header">ETHAN'S NEW WEBSITE</h3>
+    </body>
+</html>

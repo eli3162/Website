@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Dashboard</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            position: relative;
+        }
+
+        .background {
+            display: block;
+            width: 100%;
+            height: auto;
+            background-size: cover;
+            margin-top: 0;
+            z-index: 1;
+        }
+
+        .button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50%;
+            height: auto;
+            cursor: pointer;
+            z-index: 2;
+            left: 25%;
+            right: 25%;
+            padding-top: 320px;
+        }
+        .title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 50%;
+            height: auto;
+            cursor: pointer;
+            z-index: 2;
+            left: 25%;
+            right: 25%;
+            padding-top: 120px;
+        }
+    </style>
+    </head>
+    <body>
+        <a href="http://ethan.baselinux.net/fll"><img class="title" src="http://ethan.baselinux.net/assets/title.png" alt=""></a>
+        <a href="/scan/"><img class="button" src="http://ethan.baselinux.net/assets/button.png" alt=""></a>
+        <img class="background" src="http://ethan.baselinux.net/assets/GUI.png" alt="">
+
+        <script>
+        (function(){
+            const origin = window.location.origin;
+            const path = window.location.pathname;
+            const href = window.location.href;
+            console.log('Page origin:', origin);
+            console.log('Page path:', path);
+            console.log('Full URL:', href);
+
+            // small on-screen badge showing current path
+            const info = document.createElement('div');
+            info.id = 'url-badge';
+            info.textContent = origin + path;
+            Object.assign(info.style, {
+                position: 'fixed',
+                top: '8px',
+                right: '8px',
+                padding: '6px 10px',
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                fontSize: '12px',
+                borderRadius: '4px',
+                zIndex: 9999,
+                pointerEvents: 'auto'
+            });
+            document.body.appendChild(info);
+        })();
+        </script>
+    </body>
+</html>

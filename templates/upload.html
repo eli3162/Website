@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Upload File</title>
+    </head>
+    <body>
+        <form id="uploadForm" action="/fll/upload" method="POST" enctype="multipart/form-data">
+            <input id="fileInput" type="file" name="file" required style="display:none;">
+            <input type="submit" value="Upload" style="display:none;">
+        </form>
+
+        <!-- Overlay shown immediately to capture a user gesture (click) which
+             is necessary to open the native file picker in most browsers. -->
+        <div id="pickOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);color:#fff;z-index:9999;cursor:pointer;">
+            <div style="text-align:center;max-width:80%;">
+                <h2 style="margin:0 0 8px 0;font-size:20px;">Click to upload file</h2>
+                <p style="margin:0;opacity:0.9;font-size:14px;">Just upload a file!</p>
+            </div>
+        </div>
+
+        <script>
+            (function(){
+                const form = document.getElementById('uploadForm');
+                const input = document.getElementById('fileInput');
+                const overlay = document.getElementById('pickOverlay');
+
+                if (!form || !input) {
+                    console.error('Upload form or file input not found');
+                    return;
+                }
+
+                input.addEventListener('change', function(){
+                    console.log('file input change, files:', input.files && input.files.length);
+                    if (input.files && input.files.length) {
+                        // submit the form immediately after selection
+                        try {
+                            form.submit();
+                            console.log('Form submitted');
+                        } catch (err) {
+                            console.error('Form submit failed', err);
+                        }
+                    } else {
+                        console.log('No file chosen, reopening picker in 50ms');
+                        // Reopen via user gesture fallback: show overlay again to prompt click
+                        if (overlay) overlay.style.display = 'flex';
+                    }
+                });
+
+                // If programmatic click is blocked, the overlay ensures a user gesture.
+                function tryAutoOpen(){
+                    try {
+                        console.log('Attempting programmatic input.click()');
+                        input.click();
+                    } catch (e) {
+                        console.warn('Programmatic click failed or was blocked', e);
+                        if (overlay) overlay.style.display = 'flex';
+                    }
+                }
+
+                // Clicking the overlay counts as a user gesture and will open the picker.
+                if (overlay) {
+                    overlay.addEventListener('click', function(){
+                        overlay.style.display = 'none';
+                        // Delay a tiny bit to ensure overlay hidden before opening picker
+                        setTimeout(function(){
+                            try {
+                                input.click();
+                            } catch (e) {
+                                console.error('Failed to open picker after overlay click', e);
+                                overlay.style.display = 'flex';
+                            }
+                        }, 10);
+                    });
+                }
+
+                // Try to auto-open briefly; if blocked, overlay remains visible.
+                window.addEventListener('DOMContentLoaded', function(){
+                    // show overlay initially so user sees a prompt even if auto-open succeeds
+                    if (overlay) overlay.style.display = 'flex';
+                    setTimeout(tryAutoOpen, 50);
+                });
+            })();
+        </script>
+    </body>
+</html>
