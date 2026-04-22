@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EDGECOMPUTEV1</title>
+
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: #1e1e1e;
+    color: #d4d4d4;
+  }
+
+  .topbar {
+    padding: 10px;
+    background: #252526;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 1px solid #333;
+  }
+
+  button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid #3c3c3c;
+    background: #2d2d2d;
+    color: #d4d4d4;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #3a3a3a;
+  }
+
+  .tabs {
+    display: flex;
+    background: #2d2d2d;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .tab {
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #ccc;
+  }
+
+  .tab.active {
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+  }
+
+  .view {
+    display: none;
+    height: calc(100vh - 100px);
+  }
+
+  .view.active {
+    display: block;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+
+  #consoleOutput {
+    padding: 12px;
+    font-family: monospace;
+    background: #1e1e1e;
+    color: #dcdcaa;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  #consoleOutput div {
+    margin-bottom: 6px;
+  }
+
+  .fileInputWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+
+  .fileName {
+    font-size: 13px;
+    color: #9cdcfe;
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .wasmPanel {
+    padding: 20px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="fileInputWrapper">
+    <span class="fileName" id="htmlFileName">No file chosen</span>
+    <button onclick="document.getElementById('fileInput').click()">Browse</button>
+    <input type="file" id="fileInput" accept=".html,.txt" onchange="updateFileName(this, 'htmlFileName')">
+  </div>
+
+  <button onclick="runHTML()">Run HTML</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('preview')">Preview</div>
+  <div class="tab" onclick="switchTab('console')">Console</div>
+  <div class="tab" onclick="switchTab('wasm')">WASM</div>
+</div>
+
+<div id="preview" class="view active">
+  <iframe id="output"></iframe>
+</div>
+
+<div id="console" class="view">
+  <div id="consoleOutput"></div>
+</div>
+
+<div id="wasm" class="view">
+  <div class="wasmPanel">
+    <div class="fileInputWrapper">
+      <span class="fileName" id="wasmFileName">No file chosen</span>
+      <button onclick="document.getElementById('wasmInput').click()">Browse</button>
+      <input type="file" id="wasmInput" accept=".wasm" onchange="updateFileName(this, 'wasmFileName')">
+    </div>
+
+    <br>
+
+    <button onclick="runWASM()">Run WASM</button>
+  </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+  document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+}
+
+function updateFileName(input, labelId) {
+  const file = input.files[0];
+  document.getElementById(labelId).textContent = file ? file.name : "No file chosen";
+}
+
+function runHTML() {
+  const file = document.getElementById('fileInput').files[0];
+
+  if (!file) {
+    alert("Select a file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    let content = e.target.result;
+
+    const consoleScript = `
+      <script>
+        (function() {
+          const send = (type, msg) => parent.postMessage({type, msg}, '*');
+          console.log = (...a) => send('log', a.join(' '));
+          console.error = (...a) => send('error', a.join(' '));
+          window.onerror = (msg) => send('error', msg);
+        })();
+      <\/script>
+    `;
+
+    content = content.replace("<head>", "<head>" + consoleScript);
+
+    document.getElementById('output').srcdoc = content;
+    document.getElementById('consoleOutput').innerHTML = "";
+  };
+
+  reader.readAsText(file);
+}
+
+async function runWASM() {
+  const file = document.getElementById("wasmInput").files[0];
+
+  if (!file) {
+    alert("Select a .wasm file.");
+    return;
+  }
+
+  const bytes = await file.arrayBuffer();
+  const consoleBox = document.getElementById("consoleOutput");
+  consoleBox.innerHTML = "";
+
+  try {
+    const result = await WebAssembly.instantiate(bytes, {
+      env: {
+        memory: new WebAssembly.Memory({ initial: 1 })
+      }
+    });
+
+    const exports = result.instance.exports;
+
+    for (let key in exports) {
+      const line = document.createElement("div");
+      line.textContent = "Export: " + key;
+      consoleBox.appendChild(line);
+
+      if (typeof exports[key] === "function") {
+        try {
+          const value = exports[key]();
+          const res = document.createElement("div");
+          res.textContent = "→ " + key + "() = " + value;
+          res.style.color = "#4fc3f7";
+          consoleBox.appendChild(res);
+        } catch {
+          const warn = document.createElement("div");
+          warn.textContent = "⚠ " + key + " needs arguments";
+          warn.style.color = "#ffb74d";
+          consoleBox.appendChild(warn);
+        }
+      }
+    }
+
+    switchTab('console');
+
+  } catch (err) {
+    const errLine = document.createElement("div");
+    errLine.textContent = "WASM Error: " + err.message;
+    errLine.style.color = "#f44336";
+    consoleBox.appendChild(errLine);
+    switchTab('console');
+  }
+}
+
+window.addEventListener("message", (event) => {
+  const div = document.createElement("div");
+  div.textContent = `[${event.data.type}] ${event.data.msg}`;
+
+  if (event.data.type === "error") {
+    div.style.color = "#f44336";
+  }
+
+  const consoleBox = document.getElementById("consoleOutput");
+  consoleBox.appendChild(div);
+  consoleBox.scrollTop = consoleBox.scrollHeight;
+});
+</script>
+
+</body>
+</html>
